@@ -6,7 +6,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use music::{Lyrics as Sheet, LyricsHit};
 use serde::{Deserialize, Serialize};
 
-const VERSION: u32 = 3;
+/// Bump whenever the provider list changes: a kept sheet is served without asking any
+/// provider, so a track played before a new one was added would never see it.
+const VERSION: u32 = 4;
 const PASSING: bool = cfg!(debug_assertions);
 const CAPACITY: usize = 500;
 
