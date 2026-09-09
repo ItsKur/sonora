@@ -82,6 +82,7 @@ fn main() {
                 database.clone(),
             ));
         let lyrics: Vec<Arc<dyn LyricsProvider>> = vec![
+            Arc::new(music::unison::Unison::new()),
             Arc::new(music::binimum::Binimum::new()),
             Arc::new(music::musixmatch::Musixmatch::new()),
             Arc::new(music::lrclib::LrcLib::new()),

@@ -6,7 +6,7 @@ use music::spotify::{AuthConfig, LibrespotClient, auth};
 use music::youtube::YouTubeClient;
 use music::{
     Lyrics, LyricsHit, LyricsProvider, LyricsQuery, MusicApi, Track, TrackKey, binimum, kugou,
-    lrclib, musixmatch, netease,
+    lrclib, musixmatch, netease, unison,
 };
 use ytmusic::YtMusic;
 
@@ -23,6 +23,7 @@ struct Probe {
 
 fn providers() -> Vec<Arc<dyn LyricsProvider>> {
     vec![
+        Arc::new(unison::Unison::new()),
         Arc::new(binimum::Binimum::new()),
         Arc::new(musixmatch::Musixmatch::new()),
         Arc::new(lrclib::LrcLib::new()),

@@ -5,13 +5,14 @@ use anyhow::{Context as _, Result};
 use music::spotify::{AuthConfig, LibrespotClient, auth};
 use music::{
     Lyrics, LyricsHit, LyricsProvider, LyricsQuery, MusicApi, Track, TrackKey, binimum, kugou,
-    lrclib, musixmatch, netease,
+    lrclib, musixmatch, netease, unison,
 };
 
 const OWN_TRUST: u32 = 25;
 const NATIVE: &str = "Spotify";
-const SOURCES: [&str; 6] = [
+const SOURCES: [&str; 7] = [
     NATIVE,
+    "Unison",
     "Apple Music",
     "Musixmatch",
     "LrcLib",
@@ -40,6 +41,7 @@ struct Row {
 
 fn providers() -> Vec<Arc<dyn LyricsProvider>> {
     vec![
+        Arc::new(unison::Unison::new()),
         Arc::new(binimum::Binimum::new()),
         Arc::new(musixmatch::Musixmatch::new()),
         Arc::new(lrclib::LrcLib::new()),
