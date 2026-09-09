@@ -630,6 +630,7 @@ toast-library-remove-failed = { $name } could not be removed from your library
 
 # lyrics
 lyrics-title = Lyrics
+lyrics-popout = Open lyrics in a new window
 lyrics-idle = Play something to see its lyrics
 lyrics-loading = Looking for lyrics…
 lyrics-missing = No lyrics found, sorry!

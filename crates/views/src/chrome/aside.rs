@@ -243,6 +243,8 @@ pub(crate) struct Aside {
     followed: Option<usize>,
     nudges: u64,
     pinned: bool,
+    /// Set on the copy living in the popout window, which has nothing to pop out of.
+    popped: bool,
     nudged: Option<std::time::Instant>,
     verse_of: Option<String>,
     verse_take: u64,
@@ -289,6 +291,12 @@ pub(crate) struct Aside {
 }
 
 impl Aside {
+    /// Marks this panel as the popout's own copy, hiding the pop-out control.
+    pub(crate) fn popped(mut self) -> Self {
+        self.popped = true;
+        self
+    }
+
     pub(crate) fn new(
         queue: Entity<Queue>,
         playback: Entity<Playback>,
@@ -337,6 +345,7 @@ impl Aside {
             followed: None,
             nudges: 0,
             pinned: true,
+            popped: false,
             nudged: None,
             verse_of: None,
             verse_take: 0,
@@ -828,6 +837,19 @@ impl Aside {
             })
             .when(!self.titled, |this| {
                 this.justify_end().pr(theme.metrics.control + px(8.))
+            })
+            .when(self.tab == SideTab::Lyrics && !self.popped, |this| {
+                this.child(
+                    Button::new("popout-lyrics")
+                        .ghost()
+                        .small()
+                        .icon("icons/external-link.svg")
+                        .tooltip("lyrics-popout")
+                        .tint(theme.muted_foreground)
+                        .on_click(|_, _, cx| {
+                            crate::shells::popout::toggle_lyrics_popout(cx);
+                        }),
+                )
             })
             .when(self.tab == SideTab::Queue, |this| {
                 this.child(
