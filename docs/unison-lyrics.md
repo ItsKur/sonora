@@ -83,3 +83,18 @@ curl 'https://unison.boidu.dev/lyrics?v=Fvfz_mtRwa4'
 ```
 
 Writes (submitting and voting on lyrics) are ECDSA-signed and are not implemented here.
+
+## Lyrics popout window
+
+`shift-ctrl-l` (`shift-cmd-l` on macOS), or the ⧉ button in the lyrics panel header, opens
+the sheet in its own window — useful for parking lyrics on a second display while the main
+window sits elsewhere. The same shortcut closes it.
+
+The popout is a second GPUI window hosting the existing `Aside` in `SideTab::Lyrics`, rather
+than a reimplementation: `Aside` already takes only `queue` and `playback` and resolves the
+lyrics and settings entities from `Sonora::global`, so a second instance observes the same
+state and stays in sync with playback for free. `Aside::popped()` marks that copy so it does
+not draw a pop-out button of its own.
+
+`shells/popout.rs` keeps the `WindowHandle` in a `Popout` global so the action toggles one
+window instead of stacking them, and clears it when the window closes.
