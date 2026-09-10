@@ -9,6 +9,7 @@ use gpui::{
     ease_in_out, px, relative, svg, uniform_list,
 };
 use i18n::t;
+use input::ToggleLyricsPopout;
 use music::{Track, Voice};
 use router::{Destination, LibraryTab, Link as _};
 use state::{
@@ -846,8 +847,8 @@ impl Aside {
                         .icon("icons/external-link.svg")
                         .tooltip("lyrics-popout")
                         .tint(theme.muted_foreground)
-                        .on_click(|_, _, cx| {
-                            crate::shells::popout::toggle_lyrics_popout(cx);
+                        .on_click(|_, window, cx| {
+                            window.dispatch_action(Box::new(ToggleLyricsPopout), cx);
                         }),
                 )
             })

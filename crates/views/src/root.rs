@@ -72,6 +72,8 @@ pub struct Root {
     shells: Shells,
     view: RootView,
     signing_in: bool,
+    /// Set when opening the popout put the lyrics panel away, so closing it can bring it back.
+    side_hidden_by_popout: bool,
     toolbar: Option<Entity<Toolbar>>,
     pending: Option<Focus>,
     navigation_transition: Option<Task<()>>,
@@ -211,6 +213,7 @@ impl Root {
             },
             view: RootView::Workspace,
             signing_in: false,
+            side_hidden_by_popout: false,
             toolbar: None,
             pending: None,
             navigation_transition: None,
@@ -343,6 +346,30 @@ impl Root {
         self.shells
             .workspace
             .update(cx, |workspace, cx| workspace.show_side(tab, cx));
+    }
+
+    /// The popout replaces the side panel rather than duplicating it: opening it puts the
+    /// lyrics panel away, and closing it puts the panel back if that is what hid it.
+    fn toggle_lyrics_popout(&mut self, cx: &mut Context<Self>) {
+        use crate::shells::popout;
+
+        if popout::lyrics_popout_open(cx) {
+            popout::toggle_lyrics_popout(cx);
+            if std::mem::take(&mut self.side_hidden_by_popout) {
+                self.show_side(SideTab::Lyrics, cx);
+            }
+            return;
+        }
+
+        self.side_hidden_by_popout = self
+            .shells
+            .workspace
+            .read(cx)
+            .showing_side(SideTab::Lyrics, cx);
+        if self.side_hidden_by_popout {
+            self.show_side(SideTab::Lyrics, cx);
+        }
+        popout::toggle_lyrics_popout(cx);
     }
 
     fn toggle_fullscreen(&mut self, cx: &mut Context<Self>) {
@@ -646,9 +673,9 @@ impl Render for Root {
             .on_action(
                 cx.listener(|this, _: &ToggleLyrics, _, cx| this.show_side(SideTab::Lyrics, cx)),
             )
-            .on_action(|_: &ToggleLyricsPopout, _, cx| {
-                crate::shells::popout::toggle_lyrics_popout(cx);
-            })
+            .on_action(
+                cx.listener(|this, _: &ToggleLyricsPopout, _, cx| this.toggle_lyrics_popout(cx)),
+            )
             .child(self.title_bar.clone())
             .when_else(
                 show_sign_in,

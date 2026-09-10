@@ -91,6 +91,10 @@ impl Workspace {
         self.sidebar_right.update(cx, |panel, cx| panel.toggle(cx));
     }
 
+    pub fn showing_side(&self, tab: SideTab, cx: &App) -> bool {
+        self.sidebar_right.read(cx).showing(tab, cx)
+    }
+
     pub fn show_side(&self, tab: SideTab, cx: &mut Context<Self>) {
         self.sidebar_right
             .update(cx, |panel, cx| panel.show(tab, cx));

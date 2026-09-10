@@ -1,5 +1,5 @@
 use gpui::prelude::*;
-use gpui::{Context, Entity, Pixels, Render, StyleRefinement, Window, div, px};
+use gpui::{App, Context, Entity, Pixels, Render, StyleRefinement, Window, div, px};
 use state::{AppSettings, Playback, Queue, SideTab, Sonora};
 use ui::{ActiveTheme as _, MIN_CONTENT, Panel, Room, Side};
 
@@ -66,6 +66,11 @@ impl SidebarRight {
         }
         self.remember(cx);
         cx.notify();
+    }
+
+    /// Whether this panel is open on `tab` right now.
+    pub(crate) fn showing(&self, tab: SideTab, cx: &App) -> bool {
+        self.open && self.aside.read(cx).tab() == tab
     }
 
     pub(crate) fn show(&mut self, tab: SideTab, cx: &mut Context<Self>) {

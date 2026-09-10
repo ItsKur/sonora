@@ -58,6 +58,11 @@ struct Popout(Option<WindowHandle<LyricsPopout>>);
 
 impl gpui::Global for Popout {}
 
+/// Whether the popout is currently up.
+pub fn lyrics_popout_open(cx: &mut App) -> bool {
+    cx.default_global::<Popout>().0.is_some()
+}
+
 /// Opens the lyrics popout, or closes it when it is already up.
 pub fn toggle_lyrics_popout(cx: &mut App) {
     if let Some(open) = cx.default_global::<Popout>().0
