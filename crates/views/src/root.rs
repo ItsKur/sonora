@@ -72,8 +72,6 @@ pub struct Root {
     shells: Shells,
     view: RootView,
     signing_in: bool,
-    /// Set when opening the popout put the lyrics panel away, so closing it can bring it back.
-    side_hidden_by_popout: bool,
     toolbar: Option<Entity<Toolbar>>,
     pending: Option<Focus>,
     navigation_transition: Option<Task<()>>,
@@ -213,7 +211,6 @@ impl Root {
             },
             view: RootView::Workspace,
             signing_in: false,
-            side_hidden_by_popout: false,
             toolbar: None,
             pending: None,
             navigation_transition: None,
@@ -355,19 +352,15 @@ impl Root {
 
         if popout::lyrics_popout_open(cx) {
             popout::toggle_lyrics_popout(cx);
-            if std::mem::take(&mut self.side_hidden_by_popout) {
-                self.show_side(SideTab::Lyrics, cx);
-            }
             return;
         }
 
-        self.side_hidden_by_popout = self
-            .shells
-            .workspace
-            .read(cx)
-            .showing_side(SideTab::Lyrics, cx);
-        if self.side_hidden_by_popout {
+        let workspace = self.shells.workspace.read(cx);
+        let showing = workspace.showing_side(SideTab::Lyrics, cx);
+        let panel = workspace.side_panel();
+        if showing {
             self.show_side(SideTab::Lyrics, cx);
+            popout::restore_on_close(panel, cx);
         }
         popout::toggle_lyrics_popout(cx);
     }

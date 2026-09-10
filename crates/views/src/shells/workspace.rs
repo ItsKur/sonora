@@ -91,6 +91,10 @@ impl Workspace {
         self.sidebar_right.update(cx, |panel, cx| panel.toggle(cx));
     }
 
+    pub(crate) fn side_panel(&self) -> Entity<crate::chrome::SidebarRight> {
+        self.sidebar_right.clone()
+    }
+
     pub fn showing_side(&self, tab: SideTab, cx: &App) -> bool {
         self.sidebar_right.read(cx).showing(tab, cx)
     }

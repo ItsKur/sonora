@@ -3,11 +3,11 @@ use gpui::{
     App, Bounds, Context, Entity, FocusHandle, Render, TitlebarOptions, Window, WindowBounds,
     WindowHandle, WindowOptions, div, point, px, size,
 };
-use input::CloseWindow;
+use input::{CloseWindow, ToggleLyricsPopout};
 use state::{Playback, Queue, SideTab, Sonora};
 use ui::ActiveTheme as _;
 
-use crate::chrome::Aside;
+use crate::chrome::{Aside, SidebarRight};
 
 const FIRST_SIZE: gpui::Size<gpui::Pixels> = size(px(420.), px(720.));
 const LEAST_SIZE: gpui::Size<gpui::Pixels> = size(px(280.), px(320.));
@@ -37,6 +37,7 @@ impl Render for LyricsPopout {
             .track_focus(&self.focus)
             .key_context(input::WORKSPACE_CONTEXT)
             .on_action(|_: &CloseWindow, window, _| window.remove_window())
+            .on_action(|_: &ToggleLyricsPopout, _, cx| toggle_lyrics_popout(cx))
             .flex()
             .flex_col()
             .size_full()
@@ -52,25 +53,35 @@ impl gpui::Focusable for LyricsPopout {
     }
 }
 
-/// Remembers the popout so the action toggles one window rather than stacking them up.
+/// Remembers the popout so the action toggles one window rather than stacking them up,
+/// along with the side panel to put back when it closes.
 #[derive(Default)]
-struct Popout(Option<WindowHandle<LyricsPopout>>);
+struct Popout {
+    window: Option<WindowHandle<LyricsPopout>>,
+    restore: Option<Entity<SidebarRight>>,
+}
 
 impl gpui::Global for Popout {}
 
 /// Whether the popout is currently up.
 pub fn lyrics_popout_open(cx: &mut App) -> bool {
-    cx.default_global::<Popout>().0.is_some()
+    cx.default_global::<Popout>().window.is_some()
+}
+
+/// Names the panel to reopen once the popout closes. Cleared when it does.
+pub(crate) fn restore_on_close(panel: Entity<SidebarRight>, cx: &mut App) {
+    cx.default_global::<Popout>().restore = Some(panel);
 }
 
 /// Opens the lyrics popout, or closes it when it is already up.
 pub fn toggle_lyrics_popout(cx: &mut App) {
-    if let Some(open) = cx.default_global::<Popout>().0
-        && open
-            .update(cx, |_, window, _| window.remove_window())
-            .is_ok()
-    {
-        cx.global_mut::<Popout>().0 = None;
+    let open = cx.default_global::<Popout>().window.take();
+    if let Some(open) = open {
+        open.update(cx, |_, window, _| window.remove_window()).ok();
+        let panel = cx.default_global::<Popout>().restore.take();
+        if let Some(panel) = panel {
+            panel.update(cx, |panel, cx| panel.show(SideTab::Lyrics, cx));
+        }
         return;
     }
 
@@ -114,5 +125,5 @@ pub fn toggle_lyrics_popout(cx: &mut App) {
     handle
         .update(cx, |_, window, _| window.activate_window())
         .ok();
-    cx.global_mut::<Popout>().0 = Some(handle);
+    cx.default_global::<Popout>().window = Some(handle);
 }
